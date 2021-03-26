@@ -89,7 +89,8 @@ describe("util", () => {
         input_files: [],
         input_name: undefined,
         input_tag_name: undefined,
-        input_fail_on_unmatched_files: false
+        input_fail_on_unmatched_files: false,
+        input_draft_until_assets_uploaded: false
       });
     });
   });

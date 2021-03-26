@@ -27,6 +27,13 @@ export interface Releaser {
     tag: string;
   }): Promise<{ data: Release }>;
 
+  findRelease(params: {
+    owner: string;
+    repo: string;
+    tag: string;
+    draft: boolean;
+  }): Promise<{ data: Release }>;
+
   createRelease(params: {
     owner: string;
     repo: string;
@@ -67,6 +74,25 @@ export class GitHubReleaser implements Releaser {
     tag: string;
   }): Promise<{ data: Release }> {
     return this.github.repos.getReleaseByTag(params);
+  }
+
+  async findRelease(params: {
+    owner: string;
+    repo: string;
+    tag: string;
+    draft: boolean;
+  }): Promise<{ data: Release }> {
+    // you can't get a an existing draft by tag
+    // so we must find one in the list of all releases
+    if (params.draft) {
+      for await (const response of this.allReleases(params)) {
+        let release = response.data.find(release => release.tag_name === params.tag);
+        if (release) {
+          return {data: release};
+        }
+      }
+    }
+    return await this.getReleaseByTag(params);
   }
 
   createRelease(params: {
@@ -145,24 +171,12 @@ export const release = async (
   const tag =
     config.input_tag_name || config.github_ref.replace("refs/tags/", "");
   try {
-    // you can't get a an existing draft by tag
-    // so we must find one in the list of all releases
-    if (config.input_draft) {
-      for await (const response of releaser.allReleases({
-        owner,
-        repo
-      })) {
-        let release = response.data.find(release => release.tag_name === tag);
-        if (release) {
-          return release;
-        }
-      }
-    }
-    let existingRelease = await releaser.getReleaseByTag({
-      owner,
-      repo,
-      tag
-    });
+    const existingRelease = await releaser.findRelease({
+      owner: owner,
+      repo: repo,
+      tag: tag,
+      draft: config.input_draft || false
+    })
 
     const release_id = existingRelease.data.id;
     const target_commitish = existingRelease.data.target_commitish;
@@ -218,3 +232,36 @@ export const release = async (
     }
   }
 };
+
+export const publishRelease = async (
+  config: Config,
+  releaser: Releaser
+): Promise<Release> => {
+  const [owner, repo] = config.github_repository.split("/");
+  const tag =
+    config.input_tag_name || config.github_ref.replace("refs/tags/", "");
+  const draftRelease = await releaser.findRelease({
+    owner: owner,
+    repo: repo,
+    tag: tag,
+    draft: true
+  })
+  if (!draftRelease) {
+    console.log(
+      `⚠️ No draft release for tag ${tag} found`
+    )
+    return draftRelease
+  }
+  const publishedRelease = await releaser.updateRelease({
+    owner: owner,
+    repo: repo,
+    release_id: draftRelease.data.id,
+    target_commitish: draftRelease.data.target_commitish,
+    tag_name: draftRelease.data.tag_name,
+    name: config.input_name || tag,
+    prerelease: config.input_prerelease,
+    body: `${draftRelease.data.body}\n${releaseBody(config)}`,
+    draft: false
+  })
+  return publishedRelease.data
+}

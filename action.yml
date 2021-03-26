@@ -30,6 +30,9 @@ inputs:
   repository:
     description: 'Repository to make releases against, in <owner>/<repo> format'
     required: false
+  draft_until_assets_uploaded:
+    description: 'Mark release as draft until assets are uploaded'
+    required: false
 env:
   'GITHUB_TOKEN': 'As provided by Github Actions'
 outputs:
