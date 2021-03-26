@@ -86,9 +86,11 @@ export class GitHubReleaser implements Releaser {
     // so we must find one in the list of all releases
     if (params.draft) {
       for await (const response of this.allReleases(params)) {
-        let release = response.data.find(release => release.tag_name === params.tag);
+        let release = response.data.find(
+          release => release.tag_name === params.tag
+        );
         if (release) {
-          return {data: release};
+          return { data: release };
         }
       }
     }
@@ -176,7 +178,7 @@ export const release = async (
       repo: repo,
       tag: tag,
       draft: config.input_draft || false
-    })
+    });
 
     const release_id = existingRelease.data.id;
     const target_commitish = existingRelease.data.target_commitish;
@@ -245,12 +247,10 @@ export const publishRelease = async (
     repo: repo,
     tag: tag,
     draft: true
-  })
+  });
   if (!draftRelease) {
-    console.log(
-      `⚠️ No draft release for tag ${tag} found`
-    )
-    return draftRelease
+    console.log(`⚠️ No draft release for tag ${tag} found`);
+    return draftRelease;
   }
   const publishedRelease = await releaser.updateRelease({
     owner: owner,
@@ -262,6 +262,6 @@ export const publishRelease = async (
     prerelease: config.input_prerelease,
     body: `${draftRelease.data.body}\n${releaseBody(config)}`,
     draft: false
-  })
-  return publishedRelease.data
-}
+  });
+  return publishedRelease.data;
+};

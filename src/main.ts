@@ -43,9 +43,9 @@ async function run() {
         }
       }
     });
-    let initialConfig = config
+    let initialConfig = config;
     if (config.input_draft_until_assets_uploaded) {
-      initialConfig.input_draft = true
+      initialConfig.input_draft = true;
     }
     let releaser = new GitHubReleaser(gh);
     let rel = await release(initialConfig, releaser);
@@ -59,7 +59,7 @@ async function run() {
       });
     }
     if (config.input_draft_until_assets_uploaded && !config.input_draft) {
-      await publishRelease(config, releaser)
+      await publishRelease(config, releaser);
     }
     console.log(`🎉 Release ready at ${rel.html_url}`);
     setOutput("url", rel.html_url);

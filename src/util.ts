@@ -52,7 +52,8 @@ export const parseConfig = (env: Env): Config => {
     input_draft: env.INPUT_DRAFT === "true",
     input_prerelease: env.INPUT_PRERELEASE == "true",
     input_fail_on_unmatched_files: env.INPUT_FAIL_ON_UNMATCHED_FILES == "true",
-    input_draft_until_assets_uploaded: env.INPUT_DRAFT_UNTIL_ASSETS_UPLOADED == "true"
+    input_draft_until_assets_uploaded:
+      env.INPUT_DRAFT_UNTIL_ASSETS_UPLOADED == "true"
   };
 };
 
