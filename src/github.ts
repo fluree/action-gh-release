@@ -85,15 +85,18 @@ export class GitHubReleaser implements Releaser {
     // you can't get a an existing draft by tag
     // so we must find one in the list of all releases
     if (params.draft) {
+      console.log(`Looking for draft release with tag: ${params.tag}`)
       for await (const response of this.allReleases(params)) {
         let release = response.data.find(
           release => release.tag_name === params.tag
         );
         if (release) {
+          console.log(`Found draft release: ${release.tag_name}`)
           return { data: release };
         }
       }
     }
+    console.log(`Looking for non-draft release with tag: ${params.tag}`)
     return await this.getReleaseByTag(params);
   }
 

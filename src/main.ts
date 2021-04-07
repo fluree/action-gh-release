@@ -45,6 +45,7 @@ async function run() {
     });
     let initialConfig = config;
     if (config.input_draft_until_assets_uploaded) {
+      console.log(`📝 Marking release as draft until all assets are uploaded`);
       initialConfig.input_draft = true;
     }
     let releaser = new GitHubReleaser(gh);
@@ -52,13 +53,14 @@ async function run() {
     if (config.input_files) {
       const files = paths(config.input_files);
       if (files.length == 0) {
-        console.warn(`🤔 ${config.input_files} not include valid file.`);
+        console.warn(`🤔 ${config.input_files} does not include valid file(s).`);
       }
       files.forEach(async path => {
         await upload(gh, rel.upload_url, path);
       });
     }
     if (config.input_draft_until_assets_uploaded && !config.input_draft) {
+      console.log(`📰 Publishing draft release`)
       await publishRelease(config, releaser);
     }
     console.log(`🎉 Release ready at ${rel.html_url}`);
