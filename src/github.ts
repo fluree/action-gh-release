@@ -48,12 +48,12 @@ export interface Releaser {
     owner: string;
     repo: string;
     release_id: number;
-    tag_name: string;
-    target_commitish: string;
-    name: string;
-    body: string | undefined;
-    draft: boolean | undefined;
-    prerelease: boolean | undefined;
+    tag_name?: string;
+    target_commitish?: string;
+    name?: string;
+    body?: string;
+    draft?: boolean | undefined;
+    prerelease?: boolean | undefined;
   }): Promise<{ data: Release }>;
 
   allReleases(params: {
@@ -116,9 +116,9 @@ export class GitHubReleaser implements Releaser {
     owner: string;
     repo: string;
     release_id: number;
-    tag_name: string;
-    target_commitish: string;
-    name: string;
+    tag_name: string | undefined;
+    target_commitish: string | undefined;
+    name: string | undefined;
     body: string | undefined;
     draft: boolean | undefined;
     prerelease: boolean | undefined;
@@ -240,30 +240,16 @@ export const release = async (
 
 export const publishRelease = async (
   config: Config,
+  releaseId: number,
   releaser: Releaser
 ): Promise<Release> => {
   const [owner, repo] = config.github_repository.split("/");
   const tag =
     config.input_tag_name || config.github_ref.replace("refs/tags/", "");
-  const draftRelease = await releaser.findRelease({
-    owner: owner,
-    repo: repo,
-    tag: tag,
-    draft: true
-  });
-  if (!draftRelease) {
-    console.log(`⚠️ No draft release for tag ${tag} found`);
-    return draftRelease;
-  }
   const publishedRelease = await releaser.updateRelease({
     owner: owner,
     repo: repo,
-    release_id: draftRelease.data.id,
-    target_commitish: draftRelease.data.target_commitish,
-    tag_name: draftRelease.data.tag_name,
-    name: config.input_name || tag,
-    prerelease: config.input_prerelease,
-    body: `${draftRelease.data.body}\n${releaseBody(config)}`,
+    release_id: releaseId,
     draft: false
   });
   return publishedRelease.data;

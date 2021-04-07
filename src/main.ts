@@ -60,8 +60,9 @@ async function run() {
       });
     }
     if (config.input_draft_until_assets_uploaded && !config.input_draft) {
-      console.log(`📰 Publishing draft release`)
-      await publishRelease(config, releaser);
+      console.log(`📰 Publishing draft release`);
+      const releaseId = rel.id;
+      await publishRelease(config, releaseId, releaser);
     }
     console.log(`🎉 Release ready at ${rel.html_url}`);
     setOutput("url", rel.html_url);
